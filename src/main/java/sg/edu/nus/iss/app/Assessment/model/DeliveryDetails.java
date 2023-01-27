@@ -29,6 +29,23 @@ public class DeliveryDetails implements Serializable {
     
     private String id;
 
+    private int quantity;
+    
+    private double totalCost;
+
+
+    public DeliveryDetails(
+        String name, String address, String phone, Boolean rush, String comments, String id, int quantity, double totalCost) {
+        this.name = name;
+        this.address = address;
+        this.phone = phone;
+        this.rush = rush;
+        this.comments = comments;
+        this.id = id;
+        this.quantity = quantity;
+        this.totalCost = totalCost;
+    }
+
     public DeliveryDetails() {
         // Generate a random ID for the new contact.
         this.id = this.generateId(8);
@@ -94,6 +111,22 @@ public class DeliveryDetails implements Serializable {
 
     public void setId(String id) {
         this.id = id;
+    }
+
+    public int getQuantity() {
+        return quantity;
+    }
+
+    public void setQuantity(int quantity) {
+        this.quantity = quantity;
+    }
+
+    public double getTotalCost() {
+        return totalCost;
+    }
+
+    public void setTotalCost(double totalCost) {
+        this.totalCost = totalCost;
     }
 
 
