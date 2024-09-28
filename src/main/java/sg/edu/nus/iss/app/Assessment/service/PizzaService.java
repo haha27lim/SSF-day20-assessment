@@ -1,50 +1,136 @@
 package sg.edu.nus.iss.app.Assessment.service;
 
-import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.validation.FieldError;
+import org.springframework.validation.ObjectError;
 
-import sg.edu.nus.iss.app.Assessment.model.PizzaOrder;
+import sg.edu.nus.iss.app.Assessment.model.DeliveryDetails;
+import sg.edu.nus.iss.app.Assessment.model.Order;
+import sg.edu.nus.iss.app.Assessment.model.Pizza;
+import sg.edu.nus.iss.app.Assessment.repository.PizzaRepository;
 
 @Service
 public class PizzaService {
 
     @Autowired
-    private RedisTemplate<String, Object> redisTemplate;
+    private PizzaRepository repository;
 
-    public List<String> validateOrder(PizzaOrder pizzaOrder) {
-        List<String> errors = new ArrayList<>();
+    public static final String[] PIZZA_NAMES = {
+        "bella",
+        "margherita",
+        "marinara",
+        "spianatacalabrese",
+        "trioformaggio"
+    };
 
-        // Check that a pizza selection was made
-        if (pizzaOrder.getPizzaSelection() == null || pizzaOrder.getPizzaSelection().isEmpty()) {
-            errors.add("Please select a pizza.");
-        } else if (!Arrays.asList("bella", "margherita", "marinara", "spianatacalabrese", "trioformaggio").contains(pizzaOrder.getPizzaSelection())) {
-            // Check that the pizza selection is valid
-            errors.add("Invalid pizza selection.");
-        }
+    public static final String[] PIZZA_SIZES = {
+        "sm",
+        "md",
+        "lg"
+    };
 
-        // Check that a pizza size was selected
-        if (pizzaOrder.getPizzaSize() == null || pizzaOrder.getPizzaSize().isEmpty()) {
-            errors.add("Please select a pizza size.");
-        } else if (!Arrays.asList("sm", "md", "lg").contains(pizzaOrder.getPizzaSize())) {
-            // Check that the pizza size is valid
-            errors.add("Invalid pizza size.");
-        }
+    private final Set<String> pizzaNames;
+    private final Set<String> pizzaSizes;
 
-        // Check that the number of pizzas is between 1 and 10
-        if (pizzaOrder.getQuantity() < 1 || pizzaOrder.getQuantity() > 10) {
-            errors.add("Invalid quantity, you can order between 1 and 10 pizzas.");
-        }
 
-        return errors;
+    // Constructor that initializes the pizzaNames and pizzaSizes sets
+    public PizzaService() {
+        pizzaNames = new HashSet<>(Arrays.asList(PIZZA_NAMES)); // Convert the array to a set for faster lookup
+        pizzaSizes = new HashSet<>(Arrays.asList(PIZZA_SIZES)); // Same for pizza sizes
     }
-    public void storeOrder(PizzaOrder pizzaOrder) {
-        // Connect to Redis and store the order
-        redisTemplate.opsForValue().set("pizza_order:"+pizzaOrder.getId(),pizzaOrder);
+
+    // Method to validate a pizza order and return any validation errors
+    public List<ObjectError> validatePizzaOrder(Pizza pizza) { 
+        List<ObjectError> errors = new LinkedList<>(); // List to store validation errors
+        FieldError error;
+        // Check if the pizza name is valid
+        if (!pizzaNames.contains(pizza.getPizzaSelection().toLowerCase())) {
+            error = new FieldError("pizza", "pizza", 
+                "We do not have the following %s pizza"
+                        .formatted(pizza.getPizzaSelection())); // Error message for invalid pizza name
+            errors.add(error);
+        }
+        
+        // Check if the pizza size is valid
+        if(!pizzaSizes.contains(pizza.getPizzaSize().toLowerCase())) {
+            error = new FieldError("pizza", "size", 
+                "We do not have the following %s pizza size"
+                        .formatted(pizza.getPizzaSize())); // Error message for invalid pizza size
+            errors.add(error);
+        }
+        return errors; // Return the list of errors
+    }
+
+    // Method to fetch an order from the repository by orderId
+    public Optional<Order> getOrderByOrderId(String OrderId) {
+        return repository.get(OrderId);
+    }
+
+    // Method to create a new pizza order with a unique orderId
+    public Order createPizzaOrder(Pizza pizza, DeliveryDetails delivery) {
+        String orderId = UUID.randomUUID().toString().substring(0,8); // Generate an 8-character unique order ID
+        Order order = new Order (pizza, delivery); // Create a new Order object
+        order.setOrderId(orderId); // Set the generated orderId
+        return order; // Return the created order
+    }
+
+    // Method to calculate the total cost of the order based on pizza type, size, and quantity
+    private double calculateCost(Order order) {
+        double total = 0d;
+
+        // Calculate base cost based on pizza selection
+        switch(order.getPizzaSelection()) {
+            case "margherita":
+                total += 22;
+                break;
+            case "trioformaggio":
+                total +=25;
+                break;
+            case "bella", "marinara", "spianatacalabrese":
+                total+=30;
+                break;
+        }
+
+        // Adjust cost based on pizza size
+        switch(order.getPizzaSize()) {
+            case "sm":
+                total *= 1;
+                break;
+            case "md":
+                total *= 1.2;
+                break;
+            case "lg":
+                total *=1.5;
+                break;
+        }
+
+        // Multiply by the quantity ordered
+        total *= order.getQuantity();
+
+        // Add $2 for rush orders
+        if (order.isRush())
+            total += 2;
+
+        // Set the total cost in the order
+        order.setTotalcost(total);
+        return total; // Return the calculated total
+    }
+
+    // Method to create, calculate cost, save, and return a pizza order
+    public Order savePizzaOrder(Pizza pizza, DeliveryDetails delivery) {
+        Order order = createPizzaOrder(pizza, delivery); // Create a new order
+        calculateCost(order); // Calculate the cost of the order
+        repository.save(order); // Save the order to the repository (Redis in this case)
+        return order; // Return the saved order
     }
 }
 

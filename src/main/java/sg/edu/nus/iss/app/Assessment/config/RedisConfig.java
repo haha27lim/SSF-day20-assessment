@@ -18,11 +18,11 @@ import org.springframework.data.redis.serializer.StringRedisSerializer;
 public class RedisConfig {
 
     // value redis host from appln.properties
-    @Value("${spring.redis.host}") 
+    @Value("${spring.redis.host}")
     private String redisHost;
 
     // value redis port from appln.properties
-    @Value("${spring.redis.port}") 
+    @Value("${spring.redis.port}")
     private Optional<Integer> redisPort;
 
     @Value("${spring.redis.username}")
@@ -52,15 +52,15 @@ public class RedisConfig {
         config.setDatabase(0);
 
         final JedisClientConfiguration jedisClient = JedisClientConfiguration
-                                                            .builder()
-                                                            .build();
+                .builder()
+                .build();
         final JedisConnectionFactory jedisFac = new JedisConnectionFactory(config, jedisClient);
         jedisFac.afterPropertiesSet();
         RedisTemplate<String, Object> redisTemplate = new RedisTemplate<String, Object>();
         // associate with the redis connection
         redisTemplate.setConnectionFactory(jedisFac);
         redisTemplate.setKeySerializer(new StringRedisSerializer());
-        // set the map key/value serialization type to String 
+        // set the map key/value serialization type to String
         redisTemplate.setHashKeySerializer(new StringRedisSerializer());
         // enable redis to store java object on the value column
         RedisSerializer<Object> objSerializer = new JdkSerializationRedisSerializer(getClass().getClassLoader());

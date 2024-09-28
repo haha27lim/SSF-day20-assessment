@@ -1,19 +1,43 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Document</title>
 </head>
-<body>
+<body data-th-object="${order}">
     <h1>Delivery Details</h1>
-    <p>Order ID: <a href="/order/{{pizzaOrder.id}}">{{pizzaOrder.id}}</a></p>
-    <p>Delivery Address: {{deliveryDetails.address}}</p>
-    <p>Pizza Cost: ${{pizzaOrder.cost}}</p>
-    {% if pizzaOrder.isRushOrder %}
-        <p>Rush Order Cost: ${{pizzaOrder.rushOrderCost}}</p>
-    {% endif %}
-    <p>Total Cost: ${{pizzaOrder.totalCost}}</p>
+    <table>
+        <tr>
+            <td>Order Number: </td>
+            <td>
+                <a data-th-href="@{/order/{orderId} (orderId=${order.orderId})}"
+                    data-th-text="${order.orderId}">
+                </a>
+            </td>
+        </tr>
+        <tr>
+            <td>Your order will be delivered to </td>
+            <td>
+                <span data-th-text="${order.getAddress()}"></span>
+            </td>
+        </tr>
+        <tr>
+            <td>Pizza cost: </td>
+            <td>
+                $<span data-th-text="${order.getPizzaCost()}"></span>
+            </td>
+        </tr>
+        <tr data-th-if="${order.isRush}">
+            <td>Rush: </td>
+            <td>$2</td>
+        </tr>
+        <tr>
+            <td>Total cost: </td>
+            <td>
+                $<span data-th-text="${order.getTotalcost()}"></span>
+            </td>
+        </tr>
+    </table>
 </body>
 </html>

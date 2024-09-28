@@ -1,41 +1,70 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+			.error {
+                color: red;
+            }
+    </style>
     <title>Document</title>
 </head>
 <body>
-    <h1>Order Delivery Details</h1>
-    <form method="post" action="/pizza/order">
-        <div>
-            <label for="name">Name:</label>
-            <input type="text" id="name" name="name" th:field="*{name}" required minlength="3" />
-            <span th:if="${#fields.hasErrors('name')}" th:errors="*{name}"></span>
-        </div>
-        <div>
-            <label for="address">Address:</label>
-            <input type="text" id="address" name="address" th:field="*{address}" required />
-            <span th:if="${#fields.hasErrors('address')}" th:errors="*{address}"></span>
-        </div>
-        <div>
-            <label for="phone">Phone:</label>
-            <input type="text" id="phone" name="phone" th:field="*{phone}" required minlength="8" maxlength="8" pattern="[0-9]+" />
-            <span th:if="${#fields.hasErrors('phone')}" th:errors="*{phone}"></span>
-        </div>
-        <div>
-            <label for="rush">Rush Order:</label>
-            <input type="checkbox" id="rush" name="rush" th:field="*{rush}" />
-        </div>
-        <div>
-            <label for="comments">Comments:</label>
-            <textarea id="comments" name="comments" th:field="*{comments}"></textarea>
-        </div>
-        <div>
-            <input type="submit" value="Cancel Order" />
-            <input type="submit" value="Place Order" />
-        </div>
-    </form>    
+    <main>
+        <h1>Order Delivery Details</h1>
+    </main>
+    <section>
+        <form method="POST" data-th-action="@{/pizza/order}" data-th-object="${delivery}">
+            <table>
+                <tr>
+                    <td>Name:</td>
+                    <td>
+                        <input type="text" size="30" name="name" placeholder="Input your name" data-th-field="*{name}" minlength="3">
+                        <span data-th-if="${#fields.hasErrors('name')}" data-th-errors="*{name}"
+                              data-th-errorclass="error">
+                        </span>
+                    </td>
+                </tr>
+                <tr>
+                    <td>Address:</td>
+                    <td>
+                        <input type="text" size="30" name="address" placeholder="Input your address" data-th-field="*{address}">
+                        <span data-th-if="${#fields.hasErrors('address')}" data-th-errors="*{address}"
+                            data-th-errorclass="error">
+                        </span>
+                    </td>
+                </tr>
+                <tr>
+                    <td>Phone:</td>
+                    <td>
+                        <input type="tel" size="30" name="phone" placeholder="Input your phone number" data-th-field="*{phone}" minlength="8" maxlength="8" pattern="[0-9]{8}">
+                        <span data-th-if="${#fields.hasErrors('phone')}" data-th-errors="*{phone}"
+                              data-th-errorclass="error">
+                        </span>
+                    </td>
+                </tr>
+                <tr>
+                    <td>Rush:</td>
+                    <td>
+                        <input type="checkbox" data-th-field="*{rush}">
+                    </td>
+                </tr>
+                <tr>
+                    <td>Comments:</td>
+                    <td>
+                        <textarea cols="30" rows="5" name="comments" placeholder="Type here" data-th-field="*{comments}"></textarea>
+                    </td>
+                </tr>
+                <tr>
+                    <td></td>
+                    <td>
+                        <button type="submit" formMethod="GET" formaction="/index.html">Cancel Order</button>
+                        <button type="submit">Place Order</button>
+                    </td>
+                </tr>
+            </table>
+        </form>
+    </section>
 </body>
 </html>
